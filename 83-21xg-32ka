@@ -1,0 +1,25 @@
+--===================================================================
+-- JERKTALENT - MASTER LOADER
+--===================================================================
+
+-- 1. Cargar la Interfaz Gráfica (GUI Principal)
+task.spawn(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/TuUsuario/TuRepo/main/JerkTalent_GUI.lua", true))()
+    end)
+    if not success then
+        warn("[JerkTalent Loader] Error al cargar la GUI: " .. tostring(err))
+    end
+end)
+
+-- 2. Cargar el Motor de Piano y el Mini Reproductor (Engine)
+task.spawn(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/TuUsuario/TuRepo/main/JerkTalent_Engine.lua", true))()
+    end)
+    if not success then
+        warn("[JerkTalent Loader] Error al cargar el Motor: " .. tostring(err))
+    end
+end)
+
+print("[JerkTalent] ¡Sistema cargado con éxito por Reichland!")
