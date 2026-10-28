@@ -5,7 +5,7 @@
 -- 1. Cargar la Interfaz Gráfica (GUI Principal)
 task.spawn(function()
     local success, err = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/TuUsuario/TuRepo/main/JerkTalent_GUI.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/83-21xg-32ka", true))()
     end)
     if not success then
         warn("[JerkTalent Loader] Error al cargar la GUI: " .. tostring(err))
