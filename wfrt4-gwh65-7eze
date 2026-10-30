@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - STRICT SYNCHRONOUS SAFE ENGINE (ELITE V10)
+-- JERKTALENT - HIERARCHICAL POLYPHONIC ENGINE (ELITE V12)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -95,9 +95,21 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Duración síncrona limpia y acotada estrictamente a la partitura
+        -- DISTENCIÓN JERÁRQUICA: Diferenciamos el peso visual según la duración del beat 
+        -- permitiendo que unas notas respiren largamente y otras actúen como destellos cortos.
         local noteTime = (beats / bpm) * 60
-        local holdDuration = math.clamp(noteTime * 0.70, 0.015, 0.08)
+        local holdDuration
+        
+        if beats >= 1.0 then
+            -- Notas largas y principales (bloques estéticos densos)
+            holdDuration = math.clamp(noteTime * 0.95, 0.15, 0.40)
+        elseif beats >= 0.5 then
+            -- Notas medias
+            holdDuration = math.clamp(noteTime * 0.85, 0.08, 0.20)
+        else
+            -- Notas rápidas de adorno (destellos cortos)
+            holdDuration = math.clamp(noteTime * 0.70, 0.02, 0.07)
+        end
         
         safeWait(holdDuration)
 
