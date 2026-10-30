@@ -87,6 +87,30 @@ local DefaultSongs = {
         BPM = 92, 
         Key = "StillDreN", 
         Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/still-dre" 
+    },    
+    { 
+        Name = "THE ONE THAT GOT AWAY - KATY PERRY", 
+        BPM = 134, 
+        Key = "TheOneThatKP", 
+        Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/theonethat-kattyperry" 
+    },    
+    { 
+        Name = "VIVA LA VIDA - COLDPLAY", 
+        BPM = 120, 
+        Key = "VivaLaVidaCO", 
+        Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/vivalavida-coldplay" 
+    },    
+    { 
+        Name = "ROSAS - LA OREJA DE VAN GOGH", 
+        BPM = 110, 
+        Key = "RosasODVG", 
+        Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/rosas_oreja-vango" 
+    },    
+    { 
+        Name = "APT - ROSE Y BRUNO", 
+        BPM = 149, 
+        Key = "APTRoBru", 
+        Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/rosebruno-apt" 
     }
 }
 
