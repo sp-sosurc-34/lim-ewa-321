@@ -1,10 +1,14 @@
 --===================================================================
--- JERKTALENT - HARMONIC STABILITY ENGINE (ELITE V15)
+-- JERKTALENT - INDUSTRIAL GRADE SUPER ENGINE (ELITE V17 ARCHITECTURE)
 -- Entwickelt von Reichland
 --===================================================================
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local RunService = game:GetService("RunService")
+
+-- ===================================================================
+-- MÓDULO 1: MAPAS DE HARDWARE Y CONFIGURACIÓN DE TECLADO
+-- ===================================================================
 
 local shiftKeys = {
     "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
@@ -62,61 +66,105 @@ local keyMappings = {
     ["¿"] = Enum.KeyCode.Zero,         ["¡"] = Enum.KeyCode.One
 }
 
-local function safeWait(seconds)
-    local start = os.clock()
-    while os.clock() - start < seconds do
-        RunService.Heartbeat:Wait()
-    end
-end
+-- ===================================================================
+-- MÓDULO 2: GESTOR DE ESTADOS Y CONTROL DE HILOS SEGUROS
+-- ===================================================================
+
+local ActiveEngineState = {
+    PressedKeys = {},
+    IsActive = true
+}
 
 local Engine = {}
 
+function Engine.stopAll()
+    ActiveEngineState.IsActive = false
+    pcall(function()
+        for _, keyCode in pairs(keyMappings) do
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
+    end)
+    ActiveEngineState.PressedKeys = {}
+    ActiveEngineState.IsActive = true
+end
+
+-- ===================================================================
+-- MÓDULO 3: ANALIZADOR POLIFÓNICO Y CÁLCULO DE SUSTAIN ORGÁNICO
+-- ===================================================================
+
+local function calculateOrganicSustain(beats, bpm, chordSize)
+    local baseTime = (beats / bpm) * 60
+    
+    -- Mecánica avanzada inspirada en el preprocesamiento de partituras de élite
+    -- Si el acorde es complejo (varias notas), variamos ligeramente el factor para dar profundidad visual
+    local complexityModifier = math.clamp(1.0 - (chordSize * 0.03), 0.8, 1.0)
+    local maxRandomOffset = baseTime * 0.35
+    local stochasticOffset = math.random() * maxRandomOffset
+    
+    local finalDuration = math.max(0.02, (baseTime * 0.85 * complexityModifier) - stochasticOffset)
+    return math.clamp(finalDuration, 0.02, 0.30)
+end
+
+local function highPrecisionYield(duration)
+    local start = os.clock()
+    while os.clock() - start < duration do
+        if duration - (os.clock() - start) > 0.015 then
+            RunService.Heartbeat:Wait()
+        else
+            task.wait()
+        end
+    end
+end
+
+-- ===================================================================
+-- MÓDULO 4: DISPARADOR PRINCIPAL INDUSTRIAL
+-- ===================================================================
+
 function Engine.pressChord(keys, beats, bpm)
+    if not ActiveEngineState.IsActive then return end
+
+    local chordSize = #keys
     local needsShift = false
-    for i = 1, #keys do
+    
+    for i = 1, chordSize do
         if shiftSet[keys:sub(i, i)] then
             needsShift = true
             break
         end
     end
 
+    -- Ejecución síncrona blindada con aislamiento de errores por pcall
     pcall(function()
         if needsShift then
             VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
         end
 
         local activeCodes = {}
-        for i = 1, #keys do
+        for i = 1, chordSize do
             local char = keys:sub(i, i)
             local keyCode = keyMappings[char]
             if keyCode then
                 table.insert(activeCodes, keyCode)
                 VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+                ActiveEngineState.PressedKeys[keyCode] = true
             end
         end
 
-        -- Duración precisa y ligera para proteger la secuencia de la GUI y mantener 100% de armonía
-        local noteTime = (beats / bpm) * 60
-        local holdDuration = math.clamp(noteTime * 0.50, 0.015, 0.06)
+        -- Calculamos el sustain inteligente y orgánico
+        local holdDuration = calculateOrganicSustain(beats, bpm, chordSize)
         
-        safeWait(holdDuration)
+        highPrecisionYield(holdDuration)
 
+        -- Limpieza precisa de los códigos activos de este acorde
         for _, keyCode in ipairs(activeCodes) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+            ActiveEngineState.PressedKeys[keyCode] = nil
         end
 
         if needsShift then
             VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
         end
-    end)
-end
-
-function Engine.stopAll()
-    pcall(function()
-        for _, keyCode in pairs(keyMappings) do
-            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-        end
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
     end)
 end
 
