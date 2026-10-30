@@ -1,9 +1,10 @@
 --===================================================================
--- JERKTALENT - NATIVE TASK.DELAY NON-BLOCKING ENGINE (ELITE V7)
+-- JERKTALENT - SECURE SYNCHRONOUS ORGANIC ENGINE (ELITE V8)
 -- Entwickelt von Reichland
 --===================================================================
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local RunService = game:GetService("RunService")
 
 local shiftKeys = {
     "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
@@ -61,6 +62,17 @@ local keyMappings = {
     ["¿"] = Enum.KeyCode.Zero,         ["¡"] = Enum.KeyCode.One
 }
 
+local function preciseWait(seconds)
+    local start = os.clock()
+    while os.clock() - start < seconds do
+        if seconds - (os.clock() - start) > 0.015 then
+            RunService.Heartbeat:Wait()
+        else
+            task.wait()
+        end
+    end
+end
+
 local Engine = {}
 
 function Engine.pressChord(keys, beats, bpm)
@@ -72,6 +84,7 @@ function Engine.pressChord(keys, beats, bpm)
         end
     end
 
+    -- Usamos pcall estricto de bloque para asegurar que la liberación OCURRA SÍ O SÍ
     pcall(function()
         if needsShift then
             VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
@@ -87,21 +100,29 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Duración orgánica proporcional a la partitura (notas cortas ágiles, notas largas con sustain)
+        -- Duración orgánica basada estrictamente en la partitura, con un límite seguro y blindado
         local noteTime = (beats / bpm) * 60
-        local holdDuration = math.clamp(noteTime * 0.90, 0.03, noteTime * 1.5)
+        local holdDuration = math.clamp(noteTime * 0.80, 0.02, 0.15)
+        
+        preciseWait(holdDuration)
 
-        -- USAMOS TASK.DELAY: Libera las teclas en segundo plano sin congelar ni frenar el reproductor
-        task.delay(holdDuration, function()
-            pcall(function()
-                for _, keyCode in ipairs(activeCodes) do
-                    VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-                end
-                if needsShift then
-                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-                end
-            end)
-        end)
+        -- BLOQUE DE APAGADO OBLIGATORIO (Garantiza cero teclas pegadas)
+        for _, keyCode in ipairs(activeCodes) do
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
+
+        if needsShift then
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
+        end
+    end)
+end
+
+function Engine.stopAll()
+    pcall(function()
+        for _, keyCode in pairs(keyMappings) do
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
     end)
 end
 
