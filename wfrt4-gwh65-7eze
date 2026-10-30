@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - STABLE SUSTAIN HARDWARE ENGINE (EXTERNAL)
+-- JERKTALENT - STABLE BUFFERED HARDWARE ENGINE (EXTERNAL)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -73,16 +73,6 @@ local function preciseWait(seconds)
     end
 end
 
--- Función de emergencia para limpiar el teclado por completo
-local function forceReleaseAll()
-    pcall(function()
-        for _, keyCode in pairs(keyMappings) do
-            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-        end
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-    end)
-end
-
 local Engine = {}
 
 function Engine.pressChord(keys, beats, bpm)
@@ -109,9 +99,8 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Duración natural equilibrada para que no sature ni se pegue
         local noteTime = (beats / bpm) * 60
-        preciseWait(math.clamp(noteTime * 0.85, 0.01, 0.12))
+        preciseWait(math.max(0.008, noteTime * 0.75))
 
         for _, keyCode in ipairs(activeCodes) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
@@ -121,11 +110,6 @@ function Engine.pressChord(keys, beats, bpm)
             VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
         end
     end)
-end
-
--- Método de limpieza expuesto para cuando se detenga la canción
-function Engine.stopAll()
-    forceReleaseAll()
 end
 
 return Engine
