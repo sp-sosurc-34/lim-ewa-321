@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - STABLE BUFFERED HARDWARE ENGINE (EXTERNAL)
+-- JERKTALENT - SUSTAIN-AWARE HARDWARE ENGINE (EXTERNAL)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -85,7 +85,6 @@ function Engine.pressChord(keys, beats, bpm)
     end
 
     pcall(function()
-        -- Si requiere Shift, lo activamos de inmediato de forma síncrona
         if needsShift then
             VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
         end
@@ -100,11 +99,11 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Duración exacta de la nota basada en el BPM
+        -- USAMOS EL TIEMPO REAL DE LA NOTA (BEATS) SIN RECORTARLO AL 75%
         local noteTime = (beats / bpm) * 60
-        preciseWait(math.max(0.008, noteTime * 0.75))
+        preciseWait(math.max(0.015, noteTime))
 
-        -- Liberar teclas en bloque para evitar acumulación en el buffer
+        -- Liberar teclas respetando su duración completa
         for _, keyCode in ipairs(activeCodes) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
         end
