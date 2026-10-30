@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - INDUSTRIAL GRADE SUPER ENGINE (V19.1 CON PAUSA)
+-- JERKTALENT - INDUSTRIAL GRADE SUPER ENGINE (V19.2 BLINDADO)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -78,7 +78,6 @@ local eventIndex = 1
 local heartbeatConnection = nil
 local schedulerGeneration = 0
 
--- Variables de control de pausa en el motor
 local isPaused = false
 local pauseStart = 0
 local totalPausedTime = 0
@@ -138,7 +137,6 @@ local function sortEvents(events)
     table.sort(events, function(a, b) return eventComesFirst(a, b) end)
 end
 
--- Funciones de Pausa para el Engine
 function Engine.pause()
     if not isPaused then
         isPaused = true
@@ -165,7 +163,6 @@ local function startScheduler()
             return
         end
 
-        -- Si está pausado, congelamos el tiempo del motor
         if isPaused then return end
 
         local now = os.clock() - totalPausedTime
@@ -238,9 +235,12 @@ function Engine.stopAll()
     pauseStart = 0
     totalPausedTime = 0
 
-    for keyCode in pairs(keyReferences) do
-        sendKeyEvent(false, keyCode)
-    end
+    -- FORZAR LIBERACIÓN ABSOLUTA DE TODAS LAS TECLAS DE MAPEO
+    pcall(function()
+        for _, keyCode in pairs(keyMappings) do
+            sendKeyEvent(false, keyCode)
+        end
+    end)
     keyReferences = {}
     sendKeyEvent(false, LEFT_SHIFT)
     return true
