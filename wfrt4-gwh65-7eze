@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - ELITE ENERGY ENGINE (TEST ITERATION 2)
+-- JERKTALENT - ELITE ENERGY ENGINE (SYNTAX FIXED)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -26,7 +26,7 @@ local keyMappings = {
     ["3"] = Enum.KeyCode.Three,      ["#"] = Enum.KeyCode.Three, 
     ["4"] = Enum.KeyCode.Four,       ["$"] = Enum.KeyCode.Four,
     ["5"] = Enum.KeyCode.Five,       ["%"] = Enum.KeyCode.Five, 
-    ["6"] = Enum.KeyCode.Six,        ^ = Enum.KeyCode.Six, -- (o ^)
+    ["6"] = Enum.KeyCode.Six,        ["^"] = Enum.KeyCode.Six,
     ["7"] = Enum.KeyCode.Seven,      ["&"] = Enum.KeyCode.Seven, 
     ["8"] = Enum.KeyCode.Eight,      ["*"] = Enum.KeyCode.Eight,
     ["9"] = Enum.KeyCode.Nine,       ["("] = Enum.KeyCode.Nine, 
@@ -99,7 +99,6 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- PRUEBA 2: Piso mínimo de 0.10s para evitar que las notas mueran al instante
         local rawTime = (beats / bpm) * 60
         local holdDuration = math.max(0.10, rawTime * 0.95)
         preciseWait(holdDuration)
