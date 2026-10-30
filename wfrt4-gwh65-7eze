@@ -1,171 +1,386 @@
+
 --===================================================================
--- JERKTALENT - INDUSTRIAL GRADE SUPER ENGINE (ELITE V17 ARCHITECTURE)
--- Entwickelt von Reichland
+-- JERKTALENT V18 - INDEPENDENT NOTE SCHEDULER
 --===================================================================
 
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local RunService = game:GetService("RunService")
-
--- ===================================================================
--- MÓDULO 1: MAPAS DE HARDWARE Y CONFIGURACIÓN DE TECLADO
--- ===================================================================
-
-local shiftKeys = {
-    "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
-    "_", "+", "{", "}", "|", ":", '"', "<", ">", "?",
-    "Q","W","E","R","T","Y","U","I","O","P",
-    "A","S","D","F","G","H","J","K","L",
-    "Z","X","C","V","B","N","M"
-}
-
-local shiftSet = {}
-for _, key in ipairs(shiftKeys) do
-    shiftSet[key] = true
-end
-
-local keyMappings = {
-    ["`"] = Enum.KeyCode.Backquote,  ["~"] = Enum.KeyCode.Backquote, 
-    ["1"] = Enum.KeyCode.One,        ["!"] = Enum.KeyCode.One, 
-    ["2"] = Enum.KeyCode.Two,        ["@"] = Enum.KeyCode.Two,
-    ["3"] = Enum.KeyCode.Three,      ["#"] = Enum.KeyCode.Three, 
-    ["4"] = Enum.KeyCode.Four,       ["$"] = Enum.KeyCode.Four,
-    ["5"] = Enum.KeyCode.Five,       ["%"] = Enum.KeyCode.Five, 
-    ["6"] = Enum.KeyCode.Six,        ["^"] = Enum.KeyCode.Six,
-    ["7"] = Enum.KeyCode.Seven,      ["&"] = Enum.KeyCode.Seven, 
-    ["8"] = Enum.KeyCode.Eight,      ["*"] = Enum.KeyCode.Eight,
-    ["9"] = Enum.KeyCode.Nine,       ["("] = Enum.KeyCode.Nine, 
-    ["0"] = Enum.KeyCode.Zero,       [")"] = Enum.KeyCode.Zero,
-    ["-"] = Enum.KeyCode.Minus,      ["_"] = Enum.KeyCode.Minus, 
-    ["="] = Enum.KeyCode.Equals,     ["+"] = Enum.KeyCode.Equals,
-
-    ["q"] = Enum.KeyCode.Q, ["Q"] = Enum.KeyCode.Q, ["w"] = Enum.KeyCode.W, ["W"] = Enum.KeyCode.W,
-    ["e"] = Enum.KeyCode.E, ["E"] = Enum.KeyCode.E, ["r"] = Enum.KeyCode.R, ["R"] = Enum.KeyCode.R,
-    ["t"] = Enum.KeyCode.T, ["T"] = Enum.KeyCode.T, ["y"] = Enum.KeyCode.Y, ["Y"] = Enum.KeyCode.Y,
-    ["u"] = Enum.KeyCode.U, ["U"] = Enum.KeyCode.U, ["i"] = Enum.KeyCode.I, ["I"] = Enum.KeyCode.I,
-    ["o"] = Enum.KeyCode.O, ["O"] = Enum.KeyCode.O, ["p"] = Enum.KeyCode.P, ["P"] = Enum.KeyCode.P,
-    ["a"] = Enum.KeyCode.A, ["A"] = Enum.KeyCode.A, ["s"] = Enum.KeyCode.S, ["S"] = Enum.KeyCode.S,
-    ["d"] = Enum.KeyCode.D, ["D"] = Enum.KeyCode.D, ["f"] = Enum.KeyCode.F, ["F"] = Enum.KeyCode.F,
-    ["g"] = Enum.KeyCode.G, ["G"] = Enum.KeyCode.G, ["h"] = Enum.KeyCode.H, ["H"] = Enum.KeyCode.H,
-    ["j"] = Enum.KeyCode.J, ["J"] = Enum.KeyCode.J, ["k"] = Enum.KeyCode.K, ["K"] = Enum.KeyCode.K,
-    ["l"] = Enum.KeyCode.L, ["L"] = Enum.KeyCode.L, ["z"] = Enum.KeyCode.Z, ["Z"] = Enum.KeyCode.Z,
-    ["x"] = Enum.KeyCode.X, ["X"] = Enum.KeyCode.X, ["c"] = Enum.KeyCode.C, ["C"] = Enum.KeyCode.C,
-    ["v"] = Enum.KeyCode.V, ["V"] = Enum.KeyCode.V, ["b"] = Enum.KeyCode.B, ["B"] = Enum.KeyCode.B,
-    ["n"] = Enum.KeyCode.N, ["N"] = Enum.KeyCode.N, ["m"] = Enum.KeyCode.M, ["M"] = Enum.KeyCode.M,
-
-    ["["] = Enum.KeyCode.LeftBracket,  ["{"] = Enum.KeyCode.LeftBracket, 
-    ["]"] = Enum.KeyCode.RightBracket, ["}"] = Enum.KeyCode.RightBracket,
-    ["\\"] = Enum.KeyCode.BackSlash,   ["|"] = Enum.KeyCode.BackSlash, 
-    [";"] = Enum.KeyCode.Semicolon,    [":"] = Enum.KeyCode.Semicolon,
-    ["'"] = Enum.KeyCode.Quote,        ['"'] = Enum.KeyCode.Quote, 
-    [","] = Enum.KeyCode.Comma,        ["<"] = Enum.KeyCode.Comma,
-    ["."] = Enum.KeyCode.Period,       [">"] = Enum.KeyCode.Period, 
-    ["/"] = Enum.KeyCode.Slash,        ["?"] = Enum.KeyCode.Slash,
-
-    ["ñ"] = Enum.KeyCode.Semicolon,    ["Ñ"] = Enum.KeyCode.Semicolon,
-    ["ç"] = Enum.KeyCode.Quote,        ["Ç"] = Enum.KeyCode.Quote,
-    ["¿"] = Enum.KeyCode.Zero,         ["¡"] = Enum.KeyCode.One
-}
-
--- ===================================================================
--- MÓDULO 2: GESTOR DE ESTADOS Y CONTROL DE HILOS SEGUROS
--- ===================================================================
-
-local ActiveEngineState = {
-    PressedKeys = {},
-    IsActive = true
-}
+local VIM = game:GetService("VirtualInputManager")
+local SchedulerRunService = game:GetService("RunService")
 
 local Engine = {}
 
+local SHIFT = Enum.KeyCode.LeftShift
+
+local keyReferences = {}
+local eventQueue = {}
+local eventIndex = 1
+
+local heartbeatConnection = nil
+local generation = 0
+
+--===================================================================
+-- 1. ENVÍO SEGURO DE EVENTOS
+--===================================================================
+
+local function sendKeyEvent(isDown, keyCode)
+
+    local success, err = pcall(function()
+
+        VIM:SendKeyEvent(
+            isDown,
+            keyCode,
+            false,
+            game
+        )
+
+    end)
+
+    if not success then
+        warn("[JerkTalent V18] KeyEvent:", err)
+    end
+
+    return success
+
+end
+
+--===================================================================
+-- 2. REFERENCIAS DE TECLAS
+--===================================================================
+
+local function acquireKey(keyCode)
+
+    local count = keyReferences[keyCode] or 0
+
+    if count == 0 then
+
+        if not sendKeyEvent(true, keyCode) then
+            return false
+        end
+
+    end
+
+    keyReferences[keyCode] = count + 1
+
+    return true
+
+end
+
+local function releaseKey(keyCode)
+
+    local count = keyReferences[keyCode]
+
+    if not count then
+        return
+    end
+
+    if count <= 1 then
+
+        keyReferences[keyCode] = nil
+        sendKeyEvent(false, keyCode)
+
+    else
+
+        keyReferences[keyCode] = count - 1
+
+    end
+
+end
+
+--===================================================================
+-- 3. PULSACIÓN Y LIBERACIÓN INDIVIDUAL
+--===================================================================
+
+local function pressNote(char)
+
+    local keyCode = keyMappings[char]
+
+    if not keyCode then
+        return nil
+    end
+
+    local needsShift = shiftSet[char] == true
+
+    if needsShift then
+
+        if not acquireKey(SHIFT) then
+            return nil
+        end
+
+    end
+
+    if not acquireKey(keyCode) then
+
+        if needsShift then
+            releaseKey(SHIFT)
+        end
+
+        return nil
+
+    end
+
+    return {
+        keyCode = keyCode,
+        needsShift = needsShift,
+        active = true
+    }
+
+end
+
+local function releaseNote(handle)
+
+    if not handle or not handle.active then
+        return
+    end
+
+    handle.active = false
+
+    releaseKey(handle.keyCode)
+
+    if handle.needsShift then
+        releaseKey(SHIFT)
+    end
+
+end
+
+--===================================================================
+-- 4. PARADA Y LIMPIEZA TOTAL
+--===================================================================
+
 function Engine.stopAll()
-    ActiveEngineState.IsActive = false
-    pcall(function()
-        for _, keyCode in pairs(keyMappings) do
-            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-        end
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-    end)
-    ActiveEngineState.PressedKeys = {}
-    ActiveEngineState.IsActive = true
-end
 
--- ===================================================================
--- MÓDULO 3: ANALIZADOR POLIFÓNICO Y CÁLCULO DE SUSTAIN ORGÁNICO
--- ===================================================================
+    generation = generation + 1
 
-local function calculateOrganicSustain(beats, bpm, chordSize)
-    local baseTime = (beats / bpm) * 60
-    
-    -- Mecánica avanzada inspirada en el preprocesamiento de partituras de élite
-    -- Si el acorde es complejo (varias notas), variamos ligeramente el factor para dar profundidad visual
-    local complexityModifier = math.clamp(1.0 - (chordSize * 0.03), 0.8, 1.0)
-    local maxRandomOffset = baseTime * 0.35
-    local stochasticOffset = math.random() * maxRandomOffset
-    
-    local finalDuration = math.max(0.02, (baseTime * 0.85 * complexityModifier) - stochasticOffset)
-    return math.clamp(finalDuration, 0.02, 0.30)
-end
+    eventQueue = {}
+    eventIndex = 1
 
-local function highPrecisionYield(duration)
-    local start = os.clock()
-    while os.clock() - start < duration do
-        if duration - (os.clock() - start) > 0.015 then
-            RunService.Heartbeat:Wait()
-        else
-            task.wait()
-        end
-    end
-end
+    if heartbeatConnection then
 
--- ===================================================================
--- MÓDULO 4: DISPARADOR PRINCIPAL INDUSTRIAL
--- ===================================================================
+        heartbeatConnection:Disconnect()
+        heartbeatConnection = nil
 
-function Engine.pressChord(keys, beats, bpm)
-    if not ActiveEngineState.IsActive then return end
-
-    local chordSize = #keys
-    local needsShift = false
-    
-    for i = 1, chordSize do
-        if shiftSet[keys:sub(i, i)] then
-            needsShift = true
-            break
-        end
     end
 
-    -- Ejecución síncrona blindada con aislamiento de errores por pcall
-    pcall(function()
-        if needsShift then
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
+    -- Liberar todas las teclas normales primero.
+    for keyCode in pairs(keyReferences) do
+
+        if keyCode ~= SHIFT then
+            sendKeyEvent(false, keyCode)
         end
 
-        local activeCodes = {}
-        for i = 1, chordSize do
-            local char = keys:sub(i, i)
-            local keyCode = keyMappings[char]
-            if keyCode then
-                table.insert(activeCodes, keyCode)
-                VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
-                ActiveEngineState.PressedKeys[keyCode] = true
+    end
+
+    -- Shift siempre al final.
+    if keyReferences[SHIFT] then
+        sendKeyEvent(false, SHIFT)
+    end
+
+    keyReferences = {}
+
+end
+
+--===================================================================
+-- 5. PLANIFICADOR CENTRAL DE EVENTOS
+--===================================================================
+
+local function isFinite(value)
+
+    return type(value) == "number"
+        and value == value
+        and value ~= math.huge
+        and value ~= -math.huge
+
+end
+
+local function startScheduler()
+
+    if heartbeatConnection then
+        return
+    end
+
+    local myGeneration = generation
+
+    heartbeatConnection = SchedulerRunService.Heartbeat:Connect(function()
+
+        if generation ~= myGeneration then
+            return
+        end
+
+        -- Permitir que el sistema externo detenga el motor.
+        if _G.STOPIT then
+
+            Engine.stopAll()
+            return
+
+        end
+
+        local now = os.clock()
+
+        while true do
+
+            local event = eventQueue[eventIndex]
+
+            if not event or event.at > now then
+                break
             end
+
+            eventIndex = eventIndex + 1
+
+            if event.kind == "down" then
+
+                event.note.handle = pressNote(
+                    event.note.key
+                )
+
+            elseif event.kind == "up" then
+
+                releaseNote(event.note.handle)
+                event.note.handle = nil
+
+            end
+
         end
 
-        -- Calculamos el sustain inteligente y orgánico
-        local holdDuration = calculateOrganicSustain(beats, bpm, chordSize)
-        
-        highPrecisionYield(holdDuration)
+        -- Cuando no quedan eventos, desconectar el planificador.
+        if eventIndex > #eventQueue then
 
-        -- Limpieza precisa de los códigos activos de este acorde
-        for _, keyCode in ipairs(activeCodes) do
-            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-            ActiveEngineState.PressedKeys[keyCode] = nil
+            local connection = heartbeatConnection
+
+            heartbeatConnection = nil
+            eventQueue = {}
+            eventIndex = 1
+
+            if connection then
+                connection:Disconnect()
+            end
+
         end
 
-        if needsShift then
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-        end
     end)
+
 end
+
+--===================================================================
+-- 6. REPRODUCTOR DE NOTAS INDEPENDIENTES
+--===================================================================
+
+-- Cada nota contiene:
+-- key
+-- startSeconds
+-- durationSeconds
+
+function Engine.playNotes(notes, startAt)
+
+    if type(notes) ~= "table" then
+        return false, "Invalid note table"
+    end
+
+    if #notes == 0 then
+        return false, "Empty note table"
+    end
+
+    local pendingEvents = {}
+    local order = 0
+
+    startAt = startAt or (os.clock() + 0.05)
+
+    if not isFinite(startAt) then
+        return false, "Invalid start time"
+    end
+
+    -- Validar y construir los eventos antes de iniciar.
+    for index, note in ipairs(notes) do
+
+        if type(note) ~= "table" then
+            return false, "Invalid note at " .. index
+        end
+
+        if type(note.key) ~= "string"
+            or #note.key ~= 1
+            or not keyMappings[note.key]
+        then
+
+            return false, "Invalid key at " .. index
+
+        end
+
+        if not isFinite(note.startSeconds)
+            or note.startSeconds < 0
+        then
+
+            return false, "Invalid start time at " .. index
+
+        end
+
+        if not isFinite(note.durationSeconds)
+            or note.durationSeconds <= 0
+        then
+
+            return false, "Invalid duration at " .. index
+
+        end
+
+        local noteState = {
+            key = note.key,
+            handle = nil
+        }
+
+        order = order + 1
+
+        table.insert(pendingEvents, {
+
+            at = startAt + note.startSeconds,
+            kind = "down",
+            order = order,
+            note = noteState
+
+        })
+
+        order = order + 1
+
+        table.insert(pendingEvents, {
+
+            at = startAt
+                + note.startSeconds
+                + note.durationSeconds,
+
+            kind = "up",
+            order = order,
+            note = noteState
+
+        })
+
+    end
+
+    -- Orden cronológico.
+    -- Si coinciden, procesar primero las nuevas pulsaciones.
+    table.sort(pendingEvents, function(a, b)
+
+        if a.at ~= b.at then
+            return a.at < b.at
+        end
+
+        if a.kind ~= b.kind then
+            return a.kind == "down"
+        end
+
+        return a.order < b.order
+
+    end)
+
+    -- Cancelar cualquier reproducción anterior.
+    Engine.stopAll()
+
+    eventQueue = pendingEvents
+    eventIndex = 1
+
+    startScheduler()
+
+    return true, startAt
+
+end
+
+--===================================================================
+-- 7. FINAL
+--===================================================================
 
 return Engine
+
