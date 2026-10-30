@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - BULLETPROOF UNIFIED TIMELINE ENGINE (EXTERNAL)
+-- JERKTALENT - STABLE SUSTAIN HARDWARE ENGINE (EXTERNAL)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -73,8 +73,8 @@ local function preciseWait(seconds)
     end
 end
 
--- Función de emergencia para soltar absolutamente todo el teclado si algo falla
-local function emergencyReleaseAll()
+-- Función de emergencia para limpiar el teclado por completo
+local function forceReleaseAll()
     pcall(function()
         for _, keyCode in pairs(keyMappings) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
@@ -85,84 +85,47 @@ end
 
 local Engine = {}
 
-function Engine.playSong(songQueue, bpm, stopCheckCallback, onProgress)
-    -- Asegurar limpieza inicial
-    emergencyReleaseAll()
+function Engine.pressChord(keys, beats, bpm)
+    local needsShift = false
+    for i = 1, #keys do
+        if shiftSet[keys:sub(i, i)] then
+            needsShift = true
+            break
+        end
+    end
 
-    local success, err = pcall(function()
-        local currentTime = 0
-        local events = {}
-        local totalBeats = 0
+    pcall(function()
+        if needsShift then
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
+        end
 
-        -- 1. Compilar eventos con duración de sustain natural pero controlada
-        for _, action in ipairs(songQueue) do
-            if action.type == "keypress" then
-                local rawDuration = (action.beats / bpm) * 60
-                -- Limitamos el sustain para evitar torres de notas infinitas si hay notas largas
-                local noteDuration = math.clamp(rawDuration, 0.04, 0.35) 
-                local pressTime = currentTime
-                local releaseTime = currentTime + noteDuration
-
-                for i = 1, #action.keys do
-                    local char = action.keys:sub(i, i)
-                    local keyCode = keyMappings[char]
-                    if keyCode then
-                        table.insert(events, { time = pressTime, type = "press", code = keyCode, char = char })
-                        table.insert(events, { time = releaseTime, type = "release", code = keyCode, char = char })
-                    end
-                end
-            elseif action.type == "rest" then
-                local restDuration = (action.beats / bpm) * 60
-                currentTime = currentTime + restDuration
-                totalBeats = totalBeats + action.beats
+        local activeCodes = {}
+        for i = 1, #keys do
+            local char = keys:sub(i, i)
+            local keyCode = keyMappings[char]
+            if keyCode then
+                table.insert(activeCodes, keyCode)
+                VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
             end
         end
 
-        if totalBeats <= 0 then totalBeats = 100 end
+        -- Duración natural equilibrada para que no sature ni se pegue
+        local noteTime = (beats / bpm) * 60
+        preciseWait(math.clamp(noteTime * 0.85, 0.01, 0.12))
 
-        -- 2. Ordenar cronológicamente
-        table.sort(events, function(a, b)
-            return a.time < b.time
-        end)
+        for _, keyCode in ipairs(activeCodes) do
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
 
-        -- 3. Reproductor del Hilo Maestro
-        local lastEventTime = 0
-        local activeShift = false
-
-        for _, ev in ipairs(events) do
-            if stopCheckCallback and stopCheckCallback() then break end
-
-            local waitDelta = ev.time - lastEventTime
-            if waitDelta > 0 then
-                preciseWait(waitDelta)
-            end
-            lastEventTime = ev.time
-
-            if onProgress then
-                local estimatedBeats = (ev.time / 60) * bpm
-                onProgress(estimatedBeats, totalBeats)
-            end
-
-            local needsShift = shiftSet[ev.char] == true
-
-            if ev.type == "press" then
-                if needsShift and not activeShift then
-                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
-                    activeShift = true
-                end
-                VirtualInputManager:SendKeyEvent(true, ev.code, false, game)
-            elseif ev.type == "release" then
-                VirtualInputManager:SendKeyEvent(false, ev.code, false, game)
-            end
+        if needsShift then
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
         end
     end)
+end
 
-    -- 4. Limpieza total garantizada al terminar o si ocurre cualquier interrupción
-    emergencyReleaseAll()
-
-    if not success then
-        warn("[JerkTalent Engine Error]: " .. tostring(err))
-    end
+-- Método de limpieza expuesto para cuando se detenga la canción
+function Engine.stopAll()
+    forceReleaseAll()
 end
 
 return Engine
