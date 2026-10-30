@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - UNIFIED TIMELINE ENGINE (ELITE SUSTAIN & STABILITY)
+-- JERKTALENT - BULLETPROOF UNIFIED TIMELINE ENGINE (EXTERNAL)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -73,18 +73,33 @@ local function preciseWait(seconds)
     end
 end
 
+-- Función de emergencia para soltar absolutamente todo el teclado si algo falla
+local function emergencyReleaseAll()
+    pcall(function()
+        for _, keyCode in pairs(keyMappings) do
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
+    end)
+end
+
 local Engine = {}
 
 function Engine.playSong(songQueue, bpm, stopCheckCallback, onProgress)
-    pcall(function()
+    -- Asegurar limpieza inicial
+    emergencyReleaseAll()
+
+    local success, err = pcall(function()
         local currentTime = 0
         local events = {}
         local totalBeats = 0
 
-        -- 1. Compilar la cola en un cronograma absoluto de eventos (PRESS / RELEASE)
+        -- 1. Compilar eventos con duración de sustain natural pero controlada
         for _, action in ipairs(songQueue) do
             if action.type == "keypress" then
-                local noteDuration = (action.beats / bpm) * 60
+                local rawDuration = (action.beats / bpm) * 60
+                -- Limitamos el sustain para evitar torres de notas infinitas si hay notas largas
+                local noteDuration = math.clamp(rawDuration, 0.04, 0.35) 
                 local pressTime = currentTime
                 local releaseTime = currentTime + noteDuration
 
@@ -105,12 +120,12 @@ function Engine.playSong(songQueue, bpm, stopCheckCallback, onProgress)
 
         if totalBeats <= 0 then totalBeats = 100 end
 
-        -- 2. Ordenar cronológicamente todos los eventos de la canción
+        -- 2. Ordenar cronológicamente
         table.sort(events, function(a, b)
             return a.time < b.time
         end)
 
-        -- 3. Reproducir con el hilo maestro sincronizado único
+        -- 3. Reproductor del Hilo Maestro
         local lastEventTime = 0
         local activeShift = false
 
@@ -123,7 +138,6 @@ function Engine.playSong(songQueue, bpm, stopCheckCallback, onProgress)
             end
             lastEventTime = ev.time
 
-            -- Actualizar barra de progreso visual
             if onProgress then
                 local estimatedBeats = (ev.time / 60) * bpm
                 onProgress(estimatedBeats, totalBeats)
@@ -141,12 +155,14 @@ function Engine.playSong(songQueue, bpm, stopCheckCallback, onProgress)
                 VirtualInputManager:SendKeyEvent(false, ev.code, false, game)
             end
         end
-
-        -- Limpieza final de Shift
-        if activeShift then
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-        end
     end)
+
+    -- 4. Limpieza total garantizada al terminar o si ocurre cualquier interrupción
+    emergencyReleaseAll()
+
+    if not success then
+        warn("[JerkTalent Engine Error]: " .. tostring(err))
+    end
 end
 
 return Engine
