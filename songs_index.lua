@@ -111,6 +111,18 @@ local DefaultSongs = {
         BPM = 149, 
         Key = "APTRoBru", 
         Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/rosebruno-apt" 
+    },    
+    { 
+        Name = "ON MY OWN - ASHES REMAIN", 
+        BPM = 145, 
+        Key = "OnMyOwnAR", 
+        Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/onmyown_ashes" 
+    },    
+    { 
+        Name = "RUSH CUM 2", 
+        BPM = 207, 
+        Key = "RushCum2", 
+        Url = "https://raw.githubusercontent.com/sp-sosurc-34/lim-ewa-321/refs/heads/main/rush_e_hard" 
     }
 }
 
