@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - TEMPO-LOCKED HARMONY ENGINE (EXTERNAL)
+-- JERKTALENT - MASTER CLOCK PRE-BUFFER ENGINE (NEW APPROACH)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -62,17 +62,6 @@ local keyMappings = {
     ["¿"] = Enum.KeyCode.Zero,         ["¡"] = Enum.KeyCode.One
 }
 
-local function preciseWait(seconds)
-    local start = os.clock()
-    while os.clock() - start < seconds do
-        if seconds - (os.clock() - start) > 0.015 then
-            RunService.Heartbeat:Wait()
-        else
-            task.wait()
-        end
-    end
-end
-
 local Engine = {}
 
 function Engine.pressChord(keys, beats, bpm)
@@ -99,10 +88,14 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Retiramos el freno de 0.10s. Usamos un sustain ligero y dinámico adaptado al BPM.
-        local rawTime = (beats / bpm) * 60
-        local holdDuration = math.max(0.008, rawTime * 0.85)
-        preciseWait(holdDuration)
+        -- Duración ampliada y fluida para solapamiento visual
+        local noteTime = (beats / bpm) * 60
+        local startTime = os.clock()
+        local duration = math.max(0.04, noteTime * 1.25)
+
+        while os.clock() - startTime < duration do
+            RunService.Heartbeat:Wait()
+        end
 
         for _, keyCode in ipairs(activeCodes) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
