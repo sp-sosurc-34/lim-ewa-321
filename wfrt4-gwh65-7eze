@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - ELITE FLUID HARDWARE ENGINE (EXTERNAL)
+-- JERKTALENT - UNIFIED TIMELINE ENGINE (ELITE SUSTAIN & STABILITY)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -75,48 +75,77 @@ end
 
 local Engine = {}
 
-function Engine.pressChord(keys, beats, bpm)
-    local needsShift = false
-    for i = 1, #keys do
-        if shiftSet[keys:sub(i, i)] then
-            needsShift = true
-            break
-        end
-    end
+function Engine.playSong(songQueue, bpm, stopCheckCallback, onProgress)
+    pcall(function()
+        local currentTime = 0
+        local events = {}
+        local totalBeats = 0
 
-    -- Calculamos la duración exacta que debe mantenerse la nota
-    local noteTime = (beats / bpm) * 60
-    local holdDuration = math.max(0.03, noteTime) -- Damos un rango mínimo natural de sustain
+        -- 1. Compilar la cola en un cronograma absoluto de eventos (PRESS / RELEASE)
+        for _, action in ipairs(songQueue) do
+            if action.type == "keypress" then
+                local noteDuration = (action.beats / bpm) * 60
+                local pressTime = currentTime
+                local releaseTime = currentTime + noteDuration
 
-    -- Lanzamos un hilo independiente para manejar este acorde sin bloquear el flujo principal
-    task.spawn(function()
-        pcall(function()
-            if needsShift then
-                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
-            end
-
-            local activeCodes = {}
-            for i = 1, #keys do
-                local char = keys:sub(i, i)
-                local keyCode = keyMappings[char]
-                if keyCode then
-                    table.insert(activeCodes, keyCode)
-                    VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+                for i = 1, #action.keys do
+                    local char = action.keys:sub(i, i)
+                    local keyCode = keyMappings[char]
+                    if keyCode then
+                        table.insert(events, { time = pressTime, type = "press", code = keyCode, char = char })
+                        table.insert(events, { time = releaseTime, type = "release", code = keyCode, char = char })
+                    end
                 end
+            elseif action.type == "rest" then
+                local restDuration = (action.beats / bpm) * 60
+                currentTime = currentTime + restDuration
+                totalBeats = totalBeats + action.beats
             end
+        end
 
-            -- Espera de sostenimiento fluida
-            preciseWait(holdDuration)
+        if totalBeats <= 0 then totalBeats = 100 end
 
-            -- Liberación limpia de las teclas de este acorde
-            for _, keyCode in ipairs(activeCodes) do
-                VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-            end
-
-            if needsShift then
-                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-            end
+        -- 2. Ordenar cronológicamente todos los eventos de la canción
+        table.sort(events, function(a, b)
+            return a.time < b.time
         end)
+
+        -- 3. Reproducir con el hilo maestro sincronizado único
+        local lastEventTime = 0
+        local activeShift = false
+
+        for _, ev in ipairs(events) do
+            if stopCheckCallback and stopCheckCallback() then break end
+
+            local waitDelta = ev.time - lastEventTime
+            if waitDelta > 0 then
+                preciseWait(waitDelta)
+            end
+            lastEventTime = ev.time
+
+            -- Actualizar barra de progreso visual
+            if onProgress then
+                local estimatedBeats = (ev.time / 60) * bpm
+                onProgress(estimatedBeats, totalBeats)
+            end
+
+            local needsShift = shiftSet[ev.char] == true
+
+            if ev.type == "press" then
+                if needsShift and not activeShift then
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
+                    activeShift = true
+                end
+                VirtualInputManager:SendKeyEvent(true, ev.code, false, game)
+            elseif ev.type == "release" then
+                VirtualInputManager:SendKeyEvent(false, ev.code, false, game)
+            end
+        end
+
+        -- Limpieza final de Shift
+        if activeShift then
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
+        end
     end)
 end
 
