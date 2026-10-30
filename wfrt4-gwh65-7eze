@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - SECURE SYNCHRONOUS ORGANIC ENGINE (ELITE V8)
+-- JERKTALENT - STRICT SYNCHRONOUS SAFE ENGINE (ELITE V10)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -62,14 +62,10 @@ local keyMappings = {
     ["¿"] = Enum.KeyCode.Zero,         ["¡"] = Enum.KeyCode.One
 }
 
-local function preciseWait(seconds)
+local function safeWait(seconds)
     local start = os.clock()
     while os.clock() - start < seconds do
-        if seconds - (os.clock() - start) > 0.015 then
-            RunService.Heartbeat:Wait()
-        else
-            task.wait()
-        end
+        RunService.Heartbeat:Wait()
     end
 end
 
@@ -84,7 +80,6 @@ function Engine.pressChord(keys, beats, bpm)
         end
     end
 
-    -- Usamos pcall estricto de bloque para asegurar que la liberación OCURRA SÍ O SÍ
     pcall(function()
         if needsShift then
             VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftShift, false, game)
@@ -100,13 +95,12 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Duración orgánica basada estrictamente en la partitura, con un límite seguro y blindado
+        -- Duración síncrona limpia y acotada estrictamente a la partitura
         local noteTime = (beats / bpm) * 60
-        local holdDuration = math.clamp(noteTime * 0.80, 0.02, 0.15)
+        local holdDuration = math.clamp(noteTime * 0.70, 0.015, 0.08)
         
-        preciseWait(holdDuration)
+        safeWait(holdDuration)
 
-        -- BLOQUE DE APAGADO OBLIGATORIO (Garantiza cero teclas pegadas)
         for _, keyCode in ipairs(activeCodes) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
         end
