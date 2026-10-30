@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - ELITE ENERGY ENGINE (SYNTAX FIXED)
+-- JERKTALENT - TEMPO-LOCKED HARMONY ENGINE (EXTERNAL)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -99,8 +99,9 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
+        -- Retiramos el freno de 0.10s. Usamos un sustain ligero y dinámico adaptado al BPM.
         local rawTime = (beats / bpm) * 60
-        local holdDuration = math.max(0.10, rawTime * 0.95)
+        local holdDuration = math.max(0.008, rawTime * 0.85)
         preciseWait(holdDuration)
 
         for _, keyCode in ipairs(activeCodes) do
