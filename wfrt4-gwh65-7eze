@@ -1,36 +1,71 @@
 --===================================================================
--- JERKTALENT - INDUSTRIAL GRADE SUPER ENGINE (V19.2 BLINDADO)
--- Entwickelt von Reichland
+-- JERKTALENT - INDUSTRIAL GRADE SUPER ENGINE
+-- V19: REFINED INDEPENDENT NOTE SCHEDULER
+-- Developed by Reichland
 --===================================================================
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local RunService = game:GetService("RunService")
 
+--===================================================================
+-- MODULE 1: KEYBOARD MAPS
+--===================================================================
+
 local shiftKeys = {
     "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
     "_", "+", "{", "}", "|", ":", '"', "<", ">", "?",
+
     "Q","W","E","R","T","Y","U","I","O","P",
     "A","S","D","F","G","H","J","K","L",
     "Z","X","C","V","B","N","M"
 }
 
 local shiftSet = {}
-for _, key in ipairs(shiftKeys) do shiftSet[key] = true end
+
+for _, key in ipairs(shiftKeys) do
+    shiftSet[key] = true
+end
 
 local keyMappings = {
-    ["`"] = Enum.KeyCode.Backquote, ["~"] = Enum.KeyCode.Backquote,
-    ["1"] = Enum.KeyCode.One, ["!"] = Enum.KeyCode.One,
-    ["2"] = Enum.KeyCode.Two, ["@"] = Enum.KeyCode.Two,
-    ["3"] = Enum.KeyCode.Three, ["#"] = Enum.KeyCode.Three,
-    ["4"] = Enum.KeyCode.Four, ["$"] = Enum.KeyCode.Four,
-    ["5"] = Enum.KeyCode.Five, ["%"] = Enum.KeyCode.Five,
-    ["6"] = Enum.KeyCode.Six, ["^"] = Enum.KeyCode.Six,
-    ["7"] = Enum.KeyCode.Seven, ["&"] = Enum.KeyCode.Seven,
-    ["8"] = Enum.KeyCode.Eight, ["*"] = Enum.KeyCode.Eight,
-    ["9"] = Enum.KeyCode.Nine, ["("] = Enum.KeyCode.Nine,
-    ["0"] = Enum.KeyCode.Zero, [")"] = Enum.KeyCode.Zero,
-    ["-"] = Enum.KeyCode.Minus, ["_"] = Enum.KeyCode.Minus,
-    ["="] = Enum.KeyCode.Equals, ["+"] = Enum.KeyCode.Equals,
+    ["`"] = Enum.KeyCode.Backquote,
+    ["~"] = Enum.KeyCode.Backquote,
+
+    ["1"] = Enum.KeyCode.One,
+    ["!"] = Enum.KeyCode.One,
+
+    ["2"] = Enum.KeyCode.Two,
+    ["@"] = Enum.KeyCode.Two,
+
+    ["3"] = Enum.KeyCode.Three,
+    ["#"] = Enum.KeyCode.Three,
+
+    ["4"] = Enum.KeyCode.Four,
+    ["$"] = Enum.KeyCode.Four,
+
+    ["5"] = Enum.KeyCode.Five,
+    ["%"] = Enum.KeyCode.Five,
+
+    ["6"] = Enum.KeyCode.Six,
+    ["^"] = Enum.KeyCode.Six,
+
+    ["7"] = Enum.KeyCode.Seven,
+    ["&"] = Enum.KeyCode.Seven,
+
+    ["8"] = Enum.KeyCode.Eight,
+    ["*"] = Enum.KeyCode.Eight,
+
+    ["9"] = Enum.KeyCode.Nine,
+    ["("] = Enum.KeyCode.Nine,
+
+    ["0"] = Enum.KeyCode.Zero,
+    [")"] = Enum.KeyCode.Zero,
+
+    ["-"] = Enum.KeyCode.Minus,
+    ["_"] = Enum.KeyCode.Minus,
+
+    ["="] = Enum.KeyCode.Equals,
+    ["+"] = Enum.KeyCode.Equals,
+
     ["q"] = Enum.KeyCode.Q, ["Q"] = Enum.KeyCode.Q,
     ["w"] = Enum.KeyCode.W, ["W"] = Enum.KeyCode.W,
     ["e"] = Enum.KeyCode.E, ["E"] = Enum.KeyCode.E,
@@ -41,6 +76,7 @@ local keyMappings = {
     ["i"] = Enum.KeyCode.I, ["I"] = Enum.KeyCode.I,
     ["o"] = Enum.KeyCode.O, ["O"] = Enum.KeyCode.O,
     ["p"] = Enum.KeyCode.P, ["P"] = Enum.KeyCode.P,
+
     ["a"] = Enum.KeyCode.A, ["A"] = Enum.KeyCode.A,
     ["s"] = Enum.KeyCode.S, ["S"] = Enum.KeyCode.S,
     ["d"] = Enum.KeyCode.D, ["D"] = Enum.KeyCode.D,
@@ -50,6 +86,7 @@ local keyMappings = {
     ["j"] = Enum.KeyCode.J, ["J"] = Enum.KeyCode.J,
     ["k"] = Enum.KeyCode.K, ["K"] = Enum.KeyCode.K,
     ["l"] = Enum.KeyCode.L, ["L"] = Enum.KeyCode.L,
+
     ["z"] = Enum.KeyCode.Z, ["Z"] = Enum.KeyCode.Z,
     ["x"] = Enum.KeyCode.X, ["X"] = Enum.KeyCode.X,
     ["c"] = Enum.KeyCode.C, ["C"] = Enum.KeyCode.C,
@@ -57,193 +94,596 @@ local keyMappings = {
     ["b"] = Enum.KeyCode.B, ["B"] = Enum.KeyCode.B,
     ["n"] = Enum.KeyCode.N, ["N"] = Enum.KeyCode.N,
     ["m"] = Enum.KeyCode.M, ["M"] = Enum.KeyCode.M,
-    ["["] = Enum.KeyCode.LeftBracket, ["{"] = Enum.KeyCode.LeftBracket,
-    ["]"] = Enum.KeyCode.RightBracket, ["}"] = Enum.KeyCode.RightBracket,
-    ["\\"] = Enum.KeyCode.BackSlash, ["|"] = Enum.KeyCode.BackSlash,
-    [";"] = Enum.KeyCode.Semicolon, [":"] = Enum.KeyCode.Semicolon,
-    ["'"] = Enum.KeyCode.Quote, ['"'] = Enum.KeyCode.Quote,
-    [","] = Enum.KeyCode.Comma, ["<"] = Enum.KeyCode.Comma,
-    ["."] = Enum.KeyCode.Period, [">"] = Enum.KeyCode.Period,
-    ["/"] = Enum.KeyCode.Slash, ["?"] = Enum.KeyCode.Slash,
-    ["ñ"] = Enum.KeyCode.Semicolon, ["Ñ"] = Enum.KeyCode.Semicolon,
-    ["ç"] = Enum.KeyCode.Quote, ["Ç"] = Enum.KeyCode.Quote,
-    ["¿"] = Enum.KeyCode.Zero, ["¡"] = Enum.KeyCode.One
+
+    ["["] = Enum.KeyCode.LeftBracket,
+    ["{"] = Enum.KeyCode.LeftBracket,
+
+    ["]"] = Enum.KeyCode.RightBracket,
+    ["}"] = Enum.KeyCode.RightBracket,
+
+    ["\\"] = Enum.KeyCode.BackSlash,
+    ["|"] = Enum.KeyCode.BackSlash,
+
+    [";"] = Enum.KeyCode.Semicolon,
+    [":"] = Enum.KeyCode.Semicolon,
+
+    ["'"] = Enum.KeyCode.Quote,
+    ['"'] = Enum.KeyCode.Quote,
+
+    [","] = Enum.KeyCode.Comma,
+    ["<"] = Enum.KeyCode.Comma,
+
+    ["."] = Enum.KeyCode.Period,
+    [">"] = Enum.KeyCode.Period,
+
+    ["/"] = Enum.KeyCode.Slash,
+    ["?"] = Enum.KeyCode.Slash,
+
+    ["ñ"] = Enum.KeyCode.Semicolon,
+    ["Ñ"] = Enum.KeyCode.Semicolon,
+
+    ["ç"] = Enum.KeyCode.Quote,
+    ["Ç"] = Enum.KeyCode.Quote,
+
+    ["¿"] = Enum.KeyCode.Zero,
+    ["¡"] = Enum.KeyCode.One
 }
 
+--===================================================================
+-- MODULE 2: ENGINE STATE
+--===================================================================
+
 local Engine = {}
+
 local LEFT_SHIFT = Enum.KeyCode.LeftShift
+
 local keyReferences = {}
+
 local eventQueue = {}
 local eventIndex = 1
+
 local heartbeatConnection = nil
+
 local schedulerGeneration = 0
+local sequenceCursor = nil
 
-local isPaused = false
-local pauseStart = 0
-local totalPausedTime = 0
+--===================================================================
+-- MODULE 3: VALIDATION
+--===================================================================
 
-local function sendKeyEvent(isDown, keyCode)
-    pcall(function()
-        VirtualInputManager:SendKeyEvent(isDown, keyCode, false, game)
-    end)
+local function isFiniteNumber(value)
+
+    return type(value) == "number"
+        and value == value
+        and value ~= math.huge
+        and value ~= -math.huge
+
 end
 
-local function acquireKey(keyCode)
-    local count = keyReferences[keyCode] or 0
-    if count == 0 then
-        if not sendKeyEvent(true, keyCode) then return false end
+--===================================================================
+-- MODULE 4: SAFE INPUT
+--===================================================================
+
+local function sendKeyEvent(isDown, keyCode)
+
+    local success, err = pcall(function()
+
+        VirtualInputManager:SendKeyEvent(
+            isDown,
+            keyCode,
+            false,
+            game
+        )
+
+    end)
+
+    if not success then
+
+        warn("[JerkTalent V19] Input error:", err)
+
     end
+
+    return success
+
+end
+
+--===================================================================
+-- MODULE 5: PHYSICAL KEY REFERENCES
+--===================================================================
+
+local function acquireKey(keyCode)
+
+    local count = keyReferences[keyCode] or 0
+
+    if count == 0 then
+
+        if not sendKeyEvent(true, keyCode) then
+            return false
+        end
+
+    end
+
     keyReferences[keyCode] = count + 1
+
     return true
+
 end
 
 local function releaseKey(keyCode)
+
     local count = keyReferences[keyCode]
-    if not count then return end
-    if count <= 1 then
-        keyReferences[keyCode] = nil
-        sendKeyEvent(false, keyCode)
-    else
-        keyReferences[keyCode] = count - 1
+
+    if not count then
+        return
     end
+
+    if count <= 1 then
+
+        keyReferences[keyCode] = nil
+
+        sendKeyEvent(false, keyCode)
+
+    else
+
+        keyReferences[keyCode] = count - 1
+
+    end
+
 end
 
+--===================================================================
+-- MODULE 6: INDIVIDUAL NOTE HANDLING
+--===================================================================
+
 local function pressNote(char)
+
     local keyCode = keyMappings[char]
-    if not keyCode then return nil end
-    local needsShift = shiftSet[char] == true
-    if needsShift then
-        if not sendKeyEvent(true, LEFT_SHIFT) then return nil end
+
+    if not keyCode then
+
+        warn("[JerkTalent V19] Unknown key:", char)
+
+        return nil
+
     end
+
+    local needsShift = shiftSet[char] == true
+
+    -- Shift is used only for the key-down operation.
+    -- It is released immediately to avoid affecting other notes.
+
+    if needsShift then
+
+        if not sendKeyEvent(true, LEFT_SHIFT) then
+            return nil
+        end
+
+    end
+
     local acquired = acquireKey(keyCode)
-    if needsShift then sendKeyEvent(false, LEFT_SHIFT) end
-    if not acquired then return nil end
-    return { keyCode = keyCode, active = true }
+
+    if needsShift then
+
+        sendKeyEvent(false, LEFT_SHIFT)
+
+    end
+
+    if not acquired then
+        return nil
+    end
+
+    return {
+
+        keyCode = keyCode,
+
+        active = true
+
+    }
+
 end
 
 local function releaseNote(handle)
-    if not handle or not handle.active then return end
+
+    if not handle or not handle.active then
+        return
+    end
+
     handle.active = false
+
     releaseKey(handle.keyCode)
+
 end
 
+--===================================================================
+-- MODULE 7: EVENT ORDERING
+--===================================================================
+
 local function eventComesFirst(a, b)
-    if a.at ~= b.at then return a.at < b.at end
-    if a.kind ~= b.kind then return a.kind == "up" end
+
+    if a.at ~= b.at then
+        return a.at < b.at
+    end
+
+    -- Release the previous note before retriggering it.
+    if a.kind ~= b.kind then
+        return a.kind == "up"
+    end
+
     return a.order < b.order
+
 end
 
 local function sortEvents(events)
-    table.sort(events, function(a, b) return eventComesFirst(a, b) end)
+
+    table.sort(events, function(a, b)
+
+        return eventComesFirst(a, b)
+
+    end)
+
 end
 
-function Engine.pause()
-    if not isPaused then
-        isPaused = true
-        pauseStart = os.clock()
-    end
-end
-
-function Engine.resume()
-    if isPaused then
-        isPaused = false
-        totalPausedTime = totalPausedTime + (os.clock() - pauseStart)
-        pauseStart = 0
-    end
-end
+--===================================================================
+-- MODULE 8: CENTRAL HEARTBEAT SCHEDULER
+--===================================================================
 
 local function startScheduler()
-    if heartbeatConnection then return end
+
+    if heartbeatConnection then
+        return
+    end
+
     local myGeneration = schedulerGeneration
 
     heartbeatConnection = RunService.Heartbeat:Connect(function()
-        if myGeneration ~= schedulerGeneration then return end
-        if _G.STOPIT == true then
-            Engine.stopAll()
+
+        if myGeneration ~= schedulerGeneration then
             return
         end
 
-        if isPaused then return end
+        if _G.STOPIT == true then
 
-        local now = os.clock() - totalPausedTime
+            Engine.stopAll()
+            return
+
+        end
+
+        local now = os.clock()
 
         while true do
+
             local event = eventQueue[eventIndex]
-            if not event or event.at > now then break end
+
+            if not event or event.at > now then
+                break
+            end
+
             eventIndex = eventIndex + 1
 
             if event.kind == "down" then
-                event.note.handle = pressNote(event.note.key)
+
+                event.note.handle = pressNote(
+                    event.note.key
+                )
+
             elseif event.kind == "up" then
+
                 releaseNote(event.note.handle)
+
                 event.note.handle = nil
+
             end
+
         end
 
         if eventIndex > #eventQueue then
+
             local connection = heartbeatConnection
+
             heartbeatConnection = nil
+
             eventQueue = {}
             eventIndex = 1
-            if connection then connection:Disconnect() end
+            sequenceCursor = nil
+
+            if connection then
+                connection:Disconnect()
+            end
+
         end
+
     end)
+
 end
 
+--===================================================================
+-- MODULE 9: EVENT GENERATION
+--===================================================================
+
 local function buildEvents(notes, startAt)
-    if type(notes) ~= "table" or #notes == 0 then return nil, "Invalid notes" end
+
+    if type(notes) ~= "table" then
+        return nil, "Notes must be a table"
+    end
+
+    if #notes == 0 then
+        return nil, "Empty note table"
+    end
+
+    if not isFiniteNumber(startAt) then
+        return nil, "Invalid start time"
+    end
+
     local events = {}
     local order = 0
 
     for index, note in ipairs(notes) do
-        if not note.key or not keyMappings[note.key] then return nil, "Invalid key" end
-        local noteState = { key = note.key, handle = nil }
-        local downTime = startAt + note.startSeconds
-        local upTime = downTime + note.durationSeconds
+
+        if type(note) ~= "table" then
+            return nil, "Invalid note at index " .. index
+        end
+
+        if type(note.key) ~= "string"
+            or not keyMappings[note.key]
+        then
+
+            return nil, "Invalid key at index " .. index
+
+        end
+
+        if not isFiniteNumber(note.startSeconds)
+            or note.startSeconds < 0
+        then
+
+            return nil, "Invalid start time at index " .. index
+
+        end
+
+        if not isFiniteNumber(note.durationSeconds)
+            or note.durationSeconds <= 0
+        then
+
+            return nil, "Invalid duration at index " .. index
+
+        end
+
+        local noteState = {
+
+            key = note.key,
+
+            handle = nil
+
+        }
+
+        local downTime =
+            startAt + note.startSeconds
+
+        local upTime =
+            downTime + note.durationSeconds
 
         order = order + 1
-        table.insert(events, { at = downTime, kind = "down", order = order, note = noteState })
+
+        table.insert(events, {
+
+            at = downTime,
+            kind = "down",
+            order = order,
+            note = noteState
+
+        })
+
         order = order + 1
-        table.insert(events, { at = upTime, kind = "up", order = order, note = noteState })
+
+        table.insert(events, {
+
+            at = upTime,
+            kind = "up",
+            order = order,
+            note = noteState
+
+        })
+
     end
 
     sortEvents(events)
+
     return events
+
 end
+
+--===================================================================
+-- MODULE 10: QUEUE MANAGEMENT
+--===================================================================
+
+local function appendEvents(newEvents)
+
+    local mergedEvents = {}
+
+    for i = eventIndex, #eventQueue do
+
+        table.insert(
+            mergedEvents,
+            eventQueue[i]
+        )
+
+    end
+
+    for _, event in ipairs(newEvents) do
+
+        table.insert(
+            mergedEvents,
+            event
+        )
+
+    end
+
+    sortEvents(mergedEvents)
+
+    eventQueue = mergedEvents
+    eventIndex = 1
+
+    startScheduler()
+
+end
+
+--===================================================================
+-- MODULE 11: INDEPENDENT NOTE PLAYER
+--===================================================================
+
+-- Each note:
+-- key
+-- startSeconds
+-- durationSeconds
 
 function Engine.playNotes(notes, startAt)
-    startAt = startAt or (os.clock() + 0.05)
-    local pendingEvents, err = buildEvents(notes, startAt)
-    if not pendingEvents then return false, err end
+
+    if startAt == nil then
+        startAt = os.clock() + 0.05
+    end
+
+    local pendingEvents, err = buildEvents(
+        notes,
+        startAt
+    )
+
+    if not pendingEvents then
+
+        warn("[JerkTalent V19] Scheduling rejected:", err)
+
+        return false, err
+
+    end
 
     Engine.stopAll()
+
     eventQueue = pendingEvents
     eventIndex = 1
+
     startScheduler()
+
     return true, startAt
+
 end
+
+--===================================================================
+-- MODULE 12: LEGACY pressChord SUPPORT
+--===================================================================
+
+function Engine.pressChord(keys, beats, bpm)
+
+    if type(keys) ~= "string" then
+        return false, "Invalid chord"
+    end
+
+    if not isFiniteNumber(beats) or beats <= 0 then
+        return false, "Invalid beats"
+    end
+
+    if not isFiniteNumber(bpm) or bpm <= 0 then
+        return false, "Invalid BPM"
+    end
+
+    local durationSeconds = beats * 60 / bpm
+
+    local notes = {}
+
+    for i = 1, #keys do
+
+        local char = keys:sub(i, i)
+
+        if not keyMappings[char] then
+            return false, "Unknown key: " .. char
+        end
+
+        table.insert(notes, {
+
+            key = char,
+
+            startSeconds = 0,
+
+            durationSeconds = durationSeconds
+
+        })
+
+    end
+
+    if #notes == 0 then
+        return false, "Empty chord"
+    end
+
+    local now = os.clock() + 0.05
+
+    local startAt = math.max(
+        now,
+        sequenceCursor or now
+    )
+
+    local pendingEvents, err = buildEvents(
+        notes,
+        startAt
+    )
+
+    if not pendingEvents then
+        return false, err
+    end
+
+    appendEvents(pendingEvents)
+
+    sequenceCursor = startAt + durationSeconds
+
+    return true, startAt
+
+end
+
+--===================================================================
+-- MODULE 13: EMERGENCY CLEANUP
+--===================================================================
 
 function Engine.stopAll()
+
     schedulerGeneration = schedulerGeneration + 1
+
     if heartbeatConnection then
+
         heartbeatConnection:Disconnect()
+
         heartbeatConnection = nil
+
     end
+
     eventQueue = {}
     eventIndex = 1
-    isPaused = false
-    pauseStart = 0
-    totalPausedTime = 0
 
-    -- FORZAR LIBERACIÓN ABSOLUTA DE TODAS LAS TECLAS DE MAPEO
-    pcall(function()
-        for _, keyCode in pairs(keyMappings) do
-            sendKeyEvent(false, keyCode)
-        end
-    end)
+    sequenceCursor = nil
+
+    -- Release every active normal key.
+    for keyCode in pairs(keyReferences) do
+
+        sendKeyEvent(false, keyCode)
+
+    end
+
     keyReferences = {}
+
+    -- Ensure Shift is never left held.
     sendKeyEvent(false, LEFT_SHIFT)
+
     return true
+
 end
+
+--===================================================================
+-- MODULE 14: STATUS
+--===================================================================
+
+function Engine.isPlaying()
+
+    return heartbeatConnection ~= nil
+
+end
+
+--===================================================================
+-- END OF JERKTALENT V19
+--===================================================================
 
 return Engine
