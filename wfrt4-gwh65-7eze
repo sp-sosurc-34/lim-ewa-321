@@ -1,5 +1,5 @@
 --===================================================================
--- JERKTALENT - STABLE BUFFERED HARDWARE ENGINE (EXTERNAL)
+-- JERKTALENT - ELITE ENERGY ENGINE (TEST ITERATION 1)
 -- Entwickelt von Reichland
 --===================================================================
 
@@ -99,8 +99,9 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
+        -- PRUEBA 1: Ampliamos el sustain al 92% real de la nota para ganar cuerpo y densidad visual
         local noteTime = (beats / bpm) * 60
-        preciseWait(math.max(0.008, noteTime * 0.75))
+        preciseWait(math.max(0.01, noteTime * 0.92))
 
         for _, keyCode in ipairs(activeCodes) do
             VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
