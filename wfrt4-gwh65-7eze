@@ -1,10 +1,9 @@
 --===================================================================
--- JERKTALENT - MASTER CLOCK PRE-BUFFER ENGINE (NEW APPROACH)
+-- JERKTALENT - NATIVE TASK.DELAY NON-BLOCKING ENGINE (ELITE V7)
 -- Entwickelt von Reichland
 --===================================================================
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local RunService = game:GetService("RunService")
 
 local shiftKeys = {
     "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
@@ -88,22 +87,21 @@ function Engine.pressChord(keys, beats, bpm)
             end
         end
 
-        -- Duración ampliada y fluida para solapamiento visual
+        -- Duración orgánica proporcional a la partitura (notas cortas ágiles, notas largas con sustain)
         local noteTime = (beats / bpm) * 60
-        local startTime = os.clock()
-        local duration = math.max(0.04, noteTime * 1.25)
+        local holdDuration = math.clamp(noteTime * 0.90, 0.03, noteTime * 1.5)
 
-        while os.clock() - startTime < duration do
-            RunService.Heartbeat:Wait()
-        end
-
-        for _, keyCode in ipairs(activeCodes) do
-            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-        end
-
-        if needsShift then
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
-        end
+        -- USAMOS TASK.DELAY: Libera las teclas en segundo plano sin congelar ni frenar el reproductor
+        task.delay(holdDuration, function()
+            pcall(function()
+                for _, keyCode in ipairs(activeCodes) do
+                    VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+                end
+                if needsShift then
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftShift, false, game)
+                end
+            end)
+        end)
     end)
 end
 
